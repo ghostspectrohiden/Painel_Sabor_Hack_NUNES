@@ -447,9 +447,6 @@ body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-botto
 
 <!-- ================= LOGIN ================= -->
 <section id="loginView" class="screen">
-  <button class="float-launch" id="floatLaunch" title="Abrir o painel em janela flutuante">
-    <i data-lucide="picture-in-picture-2"></i>JANELA FLUTUANTE
-  </button>
   <div class="login-card">
     <div class="logo-wrap">
       <img src="fonts/logonunes.png" alt="Sabor Hack" onerror="this.style.display='none'"/>
@@ -489,11 +486,7 @@ body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-botto
       <div class="win-bar" id="winBar">
         <img class="logo" src="fonts/icone.png" alt="" onerror="this.style.display='none'"/>
         <div class="ttl">SABOR <span>HACK</span></div>
-        <button id="apkMin" title="Minimizar painel"><i data-lucide="minus"></i></button>
-        <button id="apkHide" title="Ocultar overlay"><i data-lucide="eye-off"></i></button>
-        <button id="apkEnd" title="Encerrar sessao"><i data-lucide="log-out"></i></button>
       </div>
-      <button class="win-min" id="minBtn" title="Minimizar para a bola flutuante"><i data-lucide="minus"></i></button>
       <div class="sidebar">
         <div class="sb-brand">
           <img src="fonts/icone.png" alt="Sabor Hack" onerror="this.src='fonts/logonunes.png'"/>
@@ -571,6 +564,9 @@ body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-botto
             <label class="switch"><input type="checkbox" data-method="Aim Precision"><span class="track"></span></label>
           </div>
 
+          <button class="btn btn-primary btn-action" id="openFF">
+            <i data-lucide="flame" style="width:15px;height:15px"></i>ABRIR FREE FIRE
+          </button>
           <button class="btn btn-ghost2 btn-action" id="cleanBtn">
             <i data-lucide="trash-2" style="width:15px;height:15px"></i>LIMPAR ARQUIVOS TEMPORÁRIOS
           </button>
@@ -605,16 +601,6 @@ body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-botto
             <div class="info"><b>Modo Anti-Stream (WhatsApp / Discord)</b><span>Oculta o painel de capturas de tela</span></div>
             <label class="switch"><input type="checkbox" id="antiStreamChk"><span class="track"></span></label>
           </div>
-          <div class="toggle-row">
-            <div class="info"><b>Esconder Ícone Flutuante</b><span>Oculta a bola sobre o jogo (reabra com 3 toques no canto superior esquerdo ou Ctrl+Shift+H)</span></div>
-            <label class="switch"><input type="checkbox" id="fabHideChk"><span class="track"></span></label>
-          </div>
-          <button class="btn btn-ghost2 btn-action" id="closePanelBtn">
-            <i data-lucide="power" style="width:15px;height:15px"></i>FECHAR PAINEL
-          </button>
-          <button class="btn btn-ghost2 btn-action" id="floatBtn">
-            <i data-lucide="picture-in-picture-2" style="width:15px;height:15px"></i>ABRIR EM JANELA FLUTUANTE
-          </button>
           <button class="btn btn-danger btn-action" id="logoutBtn">
             <i data-lucide="log-out" style="width:15px;height:15px"></i>ENCERRAR SESSÃO / SAIR
           </button>
@@ -638,12 +624,6 @@ body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-botto
             <div class="time-box"><div class="n" id="cdMins">00</div><div class="l">Minutos</div></div>
             <div class="time-box"><div class="n" id="cdSecs">00</div><div class="l">Segundos</div></div>
           </div>
-          <button class="btn btn-ghost2 btn-action" id="copyHwid">
-            <i data-lucide="copy" style="width:15px;height:15px"></i>COPIAR HWID
-          </button>
-          <button class="btn btn-ghost2 btn-action" id="resetHwid">
-            <i data-lucide="refresh-cw" style="width:15px;height:15px"></i>RESETAR HWID (novo dispositivo)
-          </button>
         </div>
 
       </div>
@@ -653,17 +633,6 @@ body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-botto
 
 <!-- ================= TOASTS / OVERLAY ================= -->
 <div id="toasts"></div>
-
-<button id="fab" class="hidden" title="Abrir painel Sabor Hack">
-  <img src="fonts/icone.png" alt="Sabor Hack" onerror="this.src='fonts/logonunes.png'"/>
-</button>
-
-<div id="fabHotzone" title="Toque 3x para reexibir o ícone"></div>
-
-<div id="fabNotice">
-  <i data-lucide="eye-off"></i>
-  <span id="fabNoticeTxt">Ícone oculto. Toque 3x no canto superior esquerdo ou pressione Ctrl+Shift+H para reexibir.</span>
-</div>
 
 <div id="antiStream">
   <div class="gl">PROTEÇÃO ANTI-STREAM ATIVA</div>
@@ -691,58 +660,7 @@ const icons = ()=>window.lucide && lucide.createIcons();
 const LS_KEY="saborhack_key";
 const LS_REM="saborhack_remember";
 const LS_SESS="saborhack_session";
-const LS_FAB="saborhack_fabpos";
-const LS_FABHIDE="saborhack_fabhide";
 const LS_HWID="saborhack_hwid";
-
-/* Modo janela flutuante: ?floating=1 (aberta em popup/aba) */
-const QS = new URLSearchParams(location.search);
-const FLOATING = QS.get("floating")==="1" || QS.get("mode")==="floating" || location.hash==="#floating";
-const PANEL_W = 452, PANEL_H = 820;
-
-/* Deteccao de Android / WebView (APK) */
-const UA = navigator.userAgent || "";
-const IS_ANDROID = /Android/i.test(UA);
-const HAS_BRIDGE = !!(window.Android || window.SaborHackAndroid || window.ReactNativeWebView);
-const IS_WEBVIEW = HAS_BRIDGE || /; wv\)/i.test(UA) ||
-  (IS_ANDROID && /Version\/[\d.]+/i.test(UA) && /Chrome\/[\d.]+/i.test(UA));
-const APK_MODE = QS.get("apk")==="1" || (IS_WEBVIEW && QS.get("web")!=="1");
-
-/* ===== Ponte nativa JS <-> Android (APK) ===== */
-function nativeCall(method, ...args){
-  try{
-    if(window.Android && typeof window.Android[method]==="function") return window.Android[method](...args);
-    if(window.SaborHackAndroid && typeof window.SaborHackAndroid[method]==="function") return window.SaborHackAndroid[method](...args);
-  }catch(_){}
-  return null;
-}
-function hasNative(){ return !!(window.Android || window.SaborHackAndroid); }
-
-/* API exposta para o app nativo (via evaluateJavascript ou addJavascriptInterface) */
-window.SaborHack = {
-  open(){          openPanel();                 nativeCall("onPanelOpened"); },
-  close(){         minimizePanel();             nativeCall("onPanelClosed"); },
-  minimize(){      minimizePanel(); },
-  showFab(){       setFabHidden(false); },
-  hideFab(){       setFabHidden(true); },
-  logout(){        logout();                    nativeCall("onLogout"); },
-  applyHide(){     /* chamado pelo nativo ao esconder o overlay */
-                   const f=$("#fab"); if(f) f.classList.add("hidden"); },
-  isLoggedIn(){    try{ return !!JSON.parse(localStorage.getItem(LS_SESS)||"{}").key; }catch(_){ return false; } },
-  version(){       return "1.0"; },
-  requestOverlay(){ nativeCall("requestOverlayPermission"); },
-  startOverlay(){   nativeCall("startOverlay"); },
-  stopOverlay(){    nativeCall("stopOverlay"); }
-};
-/* funcoes globais (faceis de chamar por evaluateJavascript do Android) */
-function SaborHackOpen(){ window.SaborHack.open(); }
-function SaborHackClose(){ window.SaborHack.close(); }
-function SaborHackMinimize(){ window.SaborHack.minimize(); }
-function SaborHackLogout(){ window.SaborHack.logout(); }
-function SaborHackHideFab(){ window.SaborHack.hideFab(); }
-function SaborHackShowFab(){ window.SaborHack.showFab(); }
-function SaborHackIsLoggedIn(){ return window.SaborHack.isLoggedIn(); }
-function SaborHackVersion(){ return window.SaborHack.version(); }
 
 /* ---------- Toasts ---------- */
 function toast(title,msg="",type="info",time=3400){
@@ -812,19 +730,6 @@ async function keyauthLicense(key, hwid){
   });
   if(!data.success) throw new Error(data.message||"Chave inválida ou expirada.");
   return data;
-}
-
-/* Reset de HWID no KeyAuth (libera a key para o dispositivo atual) */
-async function keyauthResetHwid(key, hwid){
-  if(!sessionId) await keyauthInit();
-  return keyauthPost({
-    type:"resethwid",
-    name:KEYAUTH.name,
-    ownerid:KEYAUTH.ownerid,
-    sessionid:sessionId,
-    key:key,
-    hwid:hwid||""
-  });
 }
 
 /* ---------- HWID (trava por dispositivo + navegador) ---------- */
@@ -959,51 +864,12 @@ async function doLogin(){
   }
 }
 
-/* ---------- Dashboard / FAB ---------- */
+/* ---------- Dashboard (iOS: abre direto, sem bola flutuante) ---------- */
 let countdownTimer=null;
 
-/* Após o login: esconde o login e mostra apenas a bola flutuante */
-function enterDashboard(){
-  $("#loginView").classList.add("hidden");
-  placeFab();
-  showFab();
-  if(localStorage.getItem(LS_FABHIDE)==="1"){
-    toast("Ícone Oculto","Reabra com 3 toques no canto superior esquerdo ou Ctrl+Shift+H.","warn",5000);
-  }else{
-    toast("Painel Minimizado","Clique na bola flutuante para abrir o painel.","info",5000);
-  }
-}
-
-/* Bola flutuante */
-function showFab(){
-  const f=$("#fab"), zone=$("#fabHotzone");
-  if(localStorage.getItem(LS_FABHIDE)==="1"){
-    f.classList.add("hidden"); f.classList.remove("show","hide");
-    if(zone) zone.classList.add("show");
-    return;
-  }
-  if(zone) zone.classList.remove("show");
-  f.classList.remove("hidden","hide");
-  f.classList.add("show");
-}
-function hideFab(){
-  const f=$("#fab");
-  f.classList.add("hide");
-  setTimeout(()=>{ if(f.classList.contains("hide")){ f.classList.add("hidden"); f.classList.remove("show","hide"); } },300);
-}
-function placeFab(){
-  const f=$("#fab"), S=62;
-  let x=null,y=null;
-  try{ const o=JSON.parse(localStorage.getItem(LS_FAB)||"null"); if(o){x=o.x;y=o.y;} }catch(_){}
-  if(x==null){ x=window.innerWidth-S-28; y=window.innerHeight-S-40; }
-  x=Math.max(6,Math.min(window.innerWidth-S-6,x));
-  y=Math.max(6,Math.min(window.innerHeight-S-6,y));
-  f.style.left=x+"px"; f.style.top=y+"px"; f.style.right="auto"; f.style.bottom="auto";
-}
-
-/* Abre o painel modal a partir da bola */
+/* Abre o painel diretamente */
 function openPanel(){
-  hideFab();
+  $("#loginView").classList.add("hidden");
   const d=$("#dashView");
   d.classList.remove("hidden");
   const p=$("#dashPanel");
@@ -1015,15 +881,10 @@ function openPanel(){
   initCountdown();
 }
 
-/* Minimiza o painel: oculta e traz de volta a bola flutuante */
-function minimizePanel(){
-  const p=$("#dashPanel");
-  p.classList.add("dash-out");
-  setTimeout(()=>{
-    $("#dashView").classList.add("hidden");
-    p.classList.remove("dash-out","dash-in");
-    showFab();
-  },450);
+/* Após o login: abre o painel de cara */
+function enterDashboard(){
+  openPanel();
+  toast("Bem-vindo","Painel do Sabor Hack aberto.","ok",3200);
 }
 
 /* Encerra a sessão por completo e retorna ao login */
@@ -1031,9 +892,6 @@ function logout(){
   if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
   const p=$("#dashPanel");
   p.classList.add("dash-out");
-  hideFab();
-  $("#fabHotzone").classList.remove("show");
-  $("#fabNotice").classList.remove("show");
   setTimeout(()=>{
     $("#dashView").classList.add("hidden");
     p.classList.remove("dash-out","dash-in");
@@ -1041,74 +899,6 @@ function logout(){
     statusMsg("","");
     $("#loginView").classList.remove("hidden");
   },450);
-}
-
-/* Visibilidade do ícone flutuante (esconder / mostrar) */
-let noticeTimer=null;
-function showFabNotice(){
-  const n=$("#fabNotice");
-  if(!n) return;
-  n.classList.add("show");
-  icons();
-  clearTimeout(noticeTimer);
-  noticeTimer=setTimeout(()=>n.classList.remove("show"),6000);
-}
-function setFabHidden(hide){
-  const chk=$("#fabHideChk"), f=$("#fab"), zone=$("#fabHotzone");
-  if(chk) chk.checked=hide;
-  if(hide){
-    localStorage.setItem(LS_FABHIDE,"1");
-    f.classList.add("hidden"); f.classList.remove("show","hide");
-    if(zone) zone.classList.add("show");
-    showFabNotice();
-  }else{
-    localStorage.removeItem(LS_FABHIDE);
-    showFab();
-  }
-}
-function initFabVisibility(){
-  const zone=$("#fabHotzone");
-  let taps=0, tapTimer=null;
-  zone.addEventListener("click",()=>{
-    taps++;
-    clearTimeout(tapTimer);
-    tapTimer=setTimeout(()=>{ taps=0; },1500);
-    if(taps>=3){
-      taps=0;
-      setFabHidden(false);
-      toast("Ícone Restaurado","A bola flutuante voltou.","ok");
-    }
-  });
-  $("#fabHideChk").addEventListener("change",function(){
-    setFabHidden(this.checked);
-    if(this.checked){
-      toast("Ícone Oculto","Toque 3x no canto superior esquerdo ou Ctrl+Shift+H.","warn",5000);
-    }else{
-      toast("Ícone Visível","A bola flutuante está ativa novamente.","ok");
-    }
-  });
-  document.addEventListener("keydown",e=>{
-    if(e.ctrlKey && e.shiftKey && (e.key==="H"||e.key==="h")){
-      e.preventDefault();
-      const hidden=localStorage.getItem(LS_FABHIDE)==="1";
-      setFabHidden(!hidden);
-      toast(hidden?"Ícone Restaurado":"Ícone Oculto",
-            hidden?"A bola flutuante voltou.":"Reabra com Ctrl+Shift+H.",
-            hidden?"ok":"warn");
-    }
-  });
-}
-
-/* ---------- Janela flutuante / PWA ---------- */
-/* Abre o painel numa janela flutuante popup (desktop/Android).
-   No iPhone (Safari) abre numa nova aba — o iOS nao permite sobrepor apps. */
-function openFloatingWindow(){
-  const left=Math.round(Math.max(0,(screen.width-PANEL_W)/2)), top=30;
-  const url=location.pathname+"?floating=1";
-  const w=window.open(url,"SaborHackPanel",
-    "popup=yes,width="+PANEL_W+",height="+PANEL_H+",left="+left+",top="+top+",resizable=yes,scrollbars=yes");
-  if(w){ try{ w.focus(); }catch(_){} }
-  else{ toast("Popup bloqueado","Permita pop-ups para abrir a janela flutuante.","err",5000); }
 }
 
 /* Configuração PWA (instalar como app na tela inicial) */
@@ -1128,97 +918,6 @@ function setupPWA(){
     if(!l){ l=document.createElement("link"); l.rel="manifest"; document.head.appendChild(l); }
     l.href=url;
   }catch(_){}
-}
-function initFloating(){
-  const b1=$("#floatBtn"), b2=$("#floatLaunch");
-  if(b1) b1.addEventListener("click",openFloatingWindow);
-  if(b2) b2.addEventListener("click",openFloatingWindow);
-}
-
-/* ---------- Controller do overlay Android (APK) ---------- */
-function initApk(){
-  const bar=$("#winBar");
-  // arrastar a janela do overlay pelo bar
-  let dragging=false, sx=0, sy=0;
-  bar.addEventListener("pointerdown",e=>{
-    dragging=true; sx=e.clientX; sy=e.clientY;
-    bar.style.cursor="grabbing";
-    try{ bar.setPointerCapture(e.pointerId); }catch(_){}
-  });
-  bar.addEventListener("pointermove",e=>{
-    if(!dragging) return;
-    const dx=e.clientX-sx, dy=e.clientY-sy;
-    sx=e.clientX; sy=e.clientY;
-    // se houver ponte nativa, move a janela do overlay; senao, arrasta o painel na pagina
-    if(hasNative()){ nativeCall("moveBy", Math.round(dx), Math.round(dy)); }
-    else{
-      const p=$("#dashPanel");
-      p.style.left=(parseFloat(p.style.left||0)+dx)+"px";
-      p.style.top =(parseFloat(p.style.top ||0)+dy)+"px";
-    }
-  });
-  const end=()=>{ dragging=false; bar.style.cursor="grab"; };
-  bar.addEventListener("pointerup",end);
-  bar.addEventListener("pointercancel",end);
-
-  const min=$("#apkMin"), hide=$("#apkHide"), endb=$("#apkEnd");
-  if(min) min.addEventListener("click",()=>{
-    if(hasNative()) nativeCall("minimizeOverlay");
-    minimizePanel();
-  });
-  if(hide) hide.addEventListener("click",()=>{
-    if(hasNative()) nativeCall("hideOverlay");
-    minimizePanel();
-  });
-  if(endb) endb.addEventListener("click",()=>{
-    toast("Sessão Encerrada","Voltando para a tela de login...","warn",1500);
-    if(hasNative()) nativeCall("onLogout");
-    setTimeout(logout,400);
-  });
-}
-
-/* Drag + clique da bola flutuante */
-function initFab(){
-  const f=$("#fab");
-  let dragging=false, sx=0, sy=0, ox=0, oy=0, moved=false;
-
-  f.addEventListener("pointerdown",e=>{
-    dragging=true; moved=false;
-    const r=f.getBoundingClientRect();
-    sx=e.clientX; sy=e.clientY; ox=r.left; oy=r.top;
-    f.style.transition="none";
-    try{ f.setPointerCapture(e.pointerId); }catch(_){}
-  });
-
-  f.addEventListener("pointermove",e=>{
-    if(!dragging) return;
-    const dx=e.clientX-sx, dy=e.clientY-sy;
-    if(Math.abs(dx)>4||Math.abs(dy)>4) moved=true;
-    const S=f.offsetWidth||62;
-    let nx=ox+dx, ny=oy+dy;
-    nx=Math.max(6,Math.min(window.innerWidth-S-6,nx));
-    ny=Math.max(6,Math.min(window.innerHeight-S-6,ny));
-    f.style.left=nx+"px"; f.style.top=ny+"px"; f.style.right="auto"; f.style.bottom="auto";
-  });
-
-  const end=()=>{
-    if(!dragging) return;
-    dragging=false;
-    f.style.transition="";
-    if(moved){
-      try{ localStorage.setItem(LS_FAB,JSON.stringify({x:parseFloat(f.style.left),y:parseFloat(f.style.top)})); }catch(_){}
-    }
-    f.dataset.wasDrag = moved?"1":"0";
-  };
-  f.addEventListener("pointerup",end);
-  f.addEventListener("pointercancel",end);
-
-  f.addEventListener("click",()=>{
-    if(f.dataset.wasDrag==="1"){ f.dataset.wasDrag="0"; return; }
-    openPanel();
-  });
-
-  window.addEventListener("resize",()=>{ if(!f.classList.contains("hidden")) placeFab(); });
 }
 
 function loadAccount(){
@@ -1311,6 +1010,25 @@ function initMethods(){
     });
   });
 
+  $("#openFF").addEventListener("click",()=>{
+    toast("Configurações aplicadas com sucesso","Abrindo o Free Fire...","ok",3500);
+    const schemes=["freefire://","freefiremax://","com.dts.freefireth://","com.dts.freefiremax://"];
+    let i=0;
+    const openNext=()=>{
+      if(i>=schemes.length) return;
+      const url=schemes[i++];
+      let left=false;
+      const onHide=()=>{ if(document.hidden) left=true; };
+      document.addEventListener("visibilitychange",onHide);
+      try{ window.location.href=url; }catch(_){}
+      setTimeout(()=>{
+        document.removeEventListener("visibilitychange",onHide);
+        if(!left && !document.hidden) openNext();   /* app nao abriu, tenta o proximo esquema */
+      },1000);
+    };
+    openNext();
+  });
+
   $("#cleanBtn").addEventListener("click",()=>{
     const prog=$("#cleanProgress"), bar=$("#cleanBar");
     prog.classList.add("show"); bar.style.width="0%";
@@ -1355,43 +1073,9 @@ function initSettings(){
     $("#antiStream").classList.remove("show");
     $("#antiStreamChk").checked=false;
   });
-  $("#closePanelBtn").addEventListener("click",()=>{
-    toast("Painel Minimizado","A bola flutuante continua ativa na tela.","warn");
-    setTimeout(minimizePanel,300);
-  });
-  $("#minBtn").addEventListener("click",()=>{
-    toast("Painel Minimizado","A bola flutuante continua ativa na tela.","warn",1600);
-    setTimeout(minimizePanel,200);
-  });
   $("#logoutBtn").addEventListener("click",()=>{
     toast("Sessão Encerrada","Voltando para a tela de login...","warn",1800);
     setTimeout(logout,500);
-  });
-}
-
-/* ---------- Aba Conta (HWID) ---------- */
-function initAccount(){
-  const cp=$("#copyHwid");
-  if(cp) cp.addEventListener("click",async ()=>{
-    const id=await getHWID();
-    try{ await navigator.clipboard.writeText(id); toast("HWID Copiado",id,"ok",6000); }
-    catch(_){ toast("HWID",id,"info",8000); }
-  });
-  const rs=$("#resetHwid");
-  if(rs) rs.addEventListener("click",async ()=>{
-    let s={}; try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
-    if(!s.key){ toast("Sem licença","Faça login novamente para resetar.","err"); return; }
-    const hwid=await getHWID();
-    try{
-      const r=await keyauthResetHwid(s.key,hwid);
-      if(r && r.success){
-        toast("HWID Resetado","Sua licença agora está ligada a este dispositivo.","ok",6000);
-      }else{
-        toast("Falha no reset",(r&&r.message)||"O reset de HWID não está liberado para esta key.","err",7000);
-      }
-    }catch(e){
-      toast("Erro",(e&&e.message)||"Não foi possível resetar o HWID.","err",6000);
-    }
   });
 }
 
@@ -1400,12 +1084,6 @@ function boot(){
   icons();
   setupPWA();
   initTabs(); initSensi(); initMethods(); initScale(); initSettings();
-  initFab(); initFabVisibility(); initFloating(); initApk(); initAccount();
-
-  /* estado do ícone flutuante */
-  if(localStorage.getItem(LS_FABHIDE)==="1"){
-    const chk=$("#fabHideChk"); if(chk) chk.checked=true;
-  }
 
   /* key lembrada */
   if(localStorage.getItem(LS_REM)==="1"){
@@ -1419,43 +1097,9 @@ function boot(){
     window.open("https://discord.gg/bvHb42qwCG","_blank");
   });
 
-  /* ===== Modo APK / WebView Android ===== */
-  if(APK_MODE){
-    document.body.classList.add("apk-mode");
-    document.title="Sabor Hack";
-    // avisa o nativo que o web-view carregou
-    nativeCall("onWebReady", window.SaborHack.version());
-    let s={}; try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
-    if(s && s.key){
-      $("#loginView").classList.add("hidden");
-      const d=$("#dashView"); d.classList.remove("hidden");
-      const p=$("#dashPanel"); p.classList.add("dash-in");
-      $("#fab").classList.add("hidden");
-      icons(); loadAccount(); initCountdown();
-      nativeCall("onPanelOpened");
-      toast("Overlay Ativo","Painel flutuante pronto.","ok",3000);
-    }
-    keyauthInit().catch(()=>{});
-    return;
-  }
-
-  /* Modo janela flutuante: abre o painel direto (sessão já existente) */
-  if(FLOATING){
-    document.body.classList.add("floating-mode");
-    let s={}; try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
-    if(s && s.key){
-      $("#loginView").classList.add("hidden");
-      const d=$("#dashView"); d.classList.remove("hidden");
-      const p=$("#dashPanel"); p.classList.add("dash-in");
-      $("#fab").classList.add("hidden");
-      $("#fabHotzone").classList.remove("show");
-      document.title="Sabor Hack — Flutuante";
-      icons(); loadAccount(); initCountdown();
-      toast("Janela Flutuante","Use o botão – para minimizar.","info",4000);
-      keyauthInit().catch(()=>{});
-      return;   /* nao faz init duplicado do keyauth */
-    }
-  }
+  /* iOS: abre o painel de cara se já houver sessão salva */
+  let s={}; try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
+  if(s && s.key){ openPanel(); }
 
   /* pré-inicializa a API KeyAuth silenciosamente */
   keyauthInit().catch(()=>{});
