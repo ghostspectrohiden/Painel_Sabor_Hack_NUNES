@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Sabor Hack — Painel</title>
+<link rel="icon" type="image/png" href="fonts/icone.png" />
+<link rel="apple-touch-icon" href="fonts/icone.png" />
+<meta name="theme-color" content="#060913" />
+<meta name="color-scheme" content="dark" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Sabor Hack" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+:root{
+  --bg:#060913;
+  --bg-2:#0a0f1f;
+  --glass:#0d1527;
+  --glass-hi:rgba(13,21,39,.72);
+  --cyan:#00f0ff;
+  --blue:#2563eb;
+  --grad:linear-gradient(135deg,#3b82f6 0%,#00f0ff 100%);
+  --txt:#e6f0ff;
+  --txt-dim:#7f93b8;
+  --line:rgba(0,240,255,.18);
+  --line-soft:rgba(120,160,220,.12);
+  --ok:#22e6a5;
+  --danger:#ff4d6d;
+  --warn:#ffcf5c;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  color:var(--txt);
+  background:var(--bg);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ===== fundo animado ===== */
+.bg-fx{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bg-fx::before{
+  content:"";position:absolute;inset:-30%;
+  background:
+    radial-gradient(45% 45% at 20% 20%,rgba(37,99,235,.28),transparent 60%),
+    radial-gradient(40% 40% at 82% 18%,rgba(0,240,255,.18),transparent 60%),
+    radial-gradient(50% 50% at 70% 85%,rgba(59,130,246,.20),transparent 65%);
+  filter:blur(30px);
+  animation:drift 18s ease-in-out infinite alternate;
+}
+.bg-fx::after{
+  content:"";position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,240,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,240,255,.045) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(circle at 50% 40%,#000 30%,transparent 85%);
+  -webkit-mask-image:radial-gradient(circle at 50% 40%,#000 30%,transparent 85%);
+}
+@keyframes drift{from{transform:translate3d(-3%,-2%,0) scale(1)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
+
+.scanlines{position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);
+  opacity:.35;mix-blend-mode:overlay}
+
+/* ===== util ===== */
+.hidden{display:none !important}
+.screen{position:relative;z-index:3;height:100%;width:100%}
+.neon-title{font-family:'Orbitron',sans-serif}
+
+/* ===== LOGIN ===== */
+#loginView{display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{
+  position:relative;width:100%;max-width:430px;
+  padding:38px 34px 30px;border-radius:22px;
+  background:var(--glass-hi);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--line);
+  box-shadow:0 0 0 1px rgba(0,240,255,.06) inset,
+             0 25px 70px rgba(0,0,0,.65),
+             0 0 60px rgba(0,240,255,.10);
+  animation:cardIn .7s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}
+.login-card::before{
+  content:"";position:absolute;inset:-1px;border-radius:22px;padding:1px;
+  background:linear-gradient(135deg,rgba(0,240,255,.65),transparent 40%,transparent 60%,rgba(59,130,246,.55));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+}
+.logo-wrap{display:flex;justify-content:center;margin-bottom:8px}
+.logo-wrap img{
+  max-width:230px;width:70%;user-select:none;-webkit-user-drag:none;
+  filter:drop-shadow(0 0 14px rgba(0,240,255,.55));
+  animation:pulseGlow 3s ease-in-out infinite;
+}
+@keyframes pulseGlow{
+  0%,100%{filter:drop-shadow(0 0 10px rgba(0,240,255,.35));transform:scale(1)}
+  50%{filter:drop-shadow(0 0 26px rgba(0,240,255,.85));transform:scale(1.02)}
+}
+.brand-tag{
+  text-align:center;font-family:'Orbitron';letter-spacing:5px;font-size:11px;
+  color:var(--cyan);text-transform:uppercase;opacity:.75;margin-bottom:26px;
+}
+.brand-tag span{color:var(--txt-dim);letter-spacing:2px}
+
+.field-label{font-family:'Rajdhani';font-weight:600;font-size:12px;letter-spacing:2px;
+  color:var(--txt-dim);text-transform:uppercase;margin-bottom:8px;display:block}
+
+.input-wrap{position:relative;margin-bottom:16px}
+.input-wrap i,.input-wrap>svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);
+  color:var(--txt-dim);width:18px;height:18px;transition:.25s;pointer-events:none;line-height:0}
+.input-wrap input{
+  width:100%;padding:15px 15px 15px 46px;border-radius:13px;
+  background:rgba(6,10,22,.72);border:1px solid var(--line-soft);
+  color:var(--txt);font-family:'Rajdhani';font-weight:600;letter-spacing:1.6px;
+  font-size:15px;line-height:1.2;outline:none;transition:.25s;
+}
+.input-wrap input::placeholder{color:#4d607f;letter-spacing:2px;font-size:13px}
+.input-wrap input:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(0,240,255,.12),0 0 22px rgba(0,240,255,.25);
+  background:rgba(6,10,22,.95);
+}
+.input-wrap input:focus + i,.input-wrap input:focus + svg,
+.input-wrap:focus-within i,.input-wrap:focus-within svg{color:var(--cyan)}
+
+.remember{display:flex;align-items:center;gap:10px;margin:4px 0 22px;cursor:pointer;
+  user-select:none;color:var(--txt-dim);font-size:13px;font-family:'Rajdhani';font-weight:600;letter-spacing:1px}
+.remember input{display:none}
+.checkmark{width:20px;height:20px;border-radius:6px;border:1px solid var(--line-soft);
+  background:rgba(6,10,22,.7);display:grid;place-items:center;transition:.25s;flex:none}
+.checkmark svg{width:13px;height:13px;stroke:var(--bg);stroke-width:3.5;opacity:0;transform:scale(.4);transition:.2s}
+.remember input:checked + .checkmark{background:var(--grad);border-color:transparent;box-shadow:0 0 16px rgba(0,240,255,.5)}
+.remember input:checked + .checkmark svg{opacity:1;transform:scale(1)}
+
+.btn{position:relative;width:100%;border:none;cursor:pointer;border-radius:13px;
+  font-family:'Orbitron';font-weight:700;letter-spacing:2px;font-size:13px;
+  padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:transform .12s ease,box-shadow .3s,filter .3s;overflow:hidden}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--grad);color:#02121a;
+  box-shadow:0 10px 30px rgba(0,240,255,.32),0 0 0 1px rgba(255,255,255,.06) inset}
+.btn-primary:hover{filter:brightness(1.12);box-shadow:0 14px 40px rgba(0,240,255,.55)}
+.btn-primary::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:skewX(-20deg);transition:left .6s}
+.btn-primary:hover::after{left:130%}
+.btn-ghost{margin-top:12px;background:rgba(6,10,22,.5);color:var(--txt-dim);
+  border:1px solid var(--line-soft);font-size:11px}
+.btn-ghost:hover{color:var(--cyan);border-color:var(--line);box-shadow:0 0 20px rgba(0,240,255,.16)}
+.btn .spin{width:17px;height:17px;border:2px solid rgba(0,0,0,.25);border-top-color:#02121a;
+  border-radius:50%;animation:rot .7s linear infinite}
+.btn svg{width:15px;height:15px;flex:none}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+.status-msg{min-height:20px;margin-top:14px;text-align:center;font-family:'Rajdhani';
+  font-weight:600;font-size:13px;letter-spacing:.5px}
+.status-msg.err{color:var(--danger)}
+.status-msg.ok{color:var(--ok)}
+
+/* ===== DASHBOARD (janela modal flutuante) ===== */
+#dashView{position:fixed;inset:0;z-index:8000;display:flex;align-items:center;justify-content:center;
+  padding:clamp(10px,3vw,26px);
+  background:radial-gradient(circle at 50% 40%,rgba(6,9,19,.55),rgba(6,9,19,.85));
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.scaler{width:min(1180px,96vw);height:min(720px,90vh);display:flex;
+  transform-origin:center center;transition:transform .25s ease}
+.panel{
+  flex:1;min-width:0;display:flex;border-radius:22px;overflow:hidden;
+  background:var(--glass-hi);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--line);box-shadow:0 25px 70px rgba(0,0,0,.7),0 0 60px rgba(0,240,255,.12);
+  position:relative;
+}
+.win-min{position:absolute;top:14px;right:14px;z-index:20;width:40px;height:40px;padding:0;
+  border-radius:12px;display:grid;place-items:center;cursor:pointer;background:rgba(6,10,22,.7);
+  border:1px solid var(--line);color:var(--cyan);transition:.22s;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.win-min:hover{background:rgba(0,240,255,.16);box-shadow:0 0 20px rgba(0,240,255,.4);transform:scale(1.06)}
+.win-min i,.win-min svg{width:20px;height:20px}
+
+/* ===== BARRA ARRASTAVEL (modo APK/overlay Android) ===== */
+.win-bar{display:none;position:absolute;top:0;left:0;right:0;height:52px;z-index:15;
+  align-items:center;gap:10px;padding:0 12px;cursor:grab;touch-action:none;
+  background:linear-gradient(180deg,rgba(6,10,22,.92),rgba(6,10,22,.55));
+  border-bottom:1px solid var(--line-soft);user-select:none;-webkit-user-select:none}
+body.apk-mode .win-bar{display:flex}
+.win-bar:active{cursor:grabbing}
+.win-bar .logo{width:30px;height:30px;border-radius:9px;object-fit:cover;border:1px solid var(--line);flex:none}
+.win-bar .ttl{font-family:'Orbitron';font-weight:700;font-size:12px;letter-spacing:2px;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win-bar .ttl span{color:var(--cyan)}
+.win-bar button{width:34px;height:34px;padding:0;border-radius:10px;display:grid;place-items:center;
+  cursor:pointer;background:rgba(0,240,255,.08);border:1px solid var(--line);color:var(--cyan);flex:none}
+.win-bar button:hover{background:rgba(0,240,255,.2)}
+.win-bar button i,.win-bar button svg{width:16px;height:16px}
+
+/* ===== MODO APK / OVERLAY (Android WebView) ===== */
+body.apk-mode{background:transparent;overflow:hidden}
+body.apk-mode .bg-fx,body.apk-mode .scanlines{display:none}
+body.apk-mode #dashView{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;
+  padding:0;align-items:flex-start;justify-content:flex-start}
+body.apk-mode .scaler{width:100%;height:100vh;height:100dvh;padding:0;transform-origin:top left}
+body.apk-mode .panel{width:100%;height:100%;border-radius:16px}
+body.apk-mode .win-min{display:none}
+body.apk-mode .sidebar{padding-top:calc(56px + env(safe-area-inset-top))}
+body.apk-mode .content{padding-top:calc(56px + env(safe-area-inset-top))}
+body.apk-mode .float-launch,body.apk-mode #floatBtn{display:none}
+body.apk-mode #loginView{padding-top:calc(20px + env(safe-area-inset-top))}
+.dash-out{animation:fadeOut .45s forwards}
+@keyframes fadeOut{to{opacity:0;transform:scale(.94) translateY(14px);filter:blur(6px)}}
+.dash-in{animation:fadeIn .5s}
+@keyframes fadeIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+
+/* sidebar */
+.sidebar{width:230px;flex:none;padding:22px 16px;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,rgba(6,10,22,.65),rgba(6,10,22,.35));
+  border-right:1px solid var(--line-soft)}
+.sb-brand{display:flex;align-items:center;gap:12px;padding:0 6px 22px;margin-bottom:10px;
+  border-bottom:1px solid var(--line-soft)}
+.sb-brand img{width:42px;height:42px;border-radius:12px;object-fit:cover;
+  box-shadow:0 0 18px rgba(0,240,255,.35);border:1px solid var(--line)}
+.sb-brand .t{font-family:'Orbitron';font-weight:700;font-size:15px;line-height:1.15}
+.sb-brand .s{font-size:10px;letter-spacing:2.5px;color:var(--cyan);text-transform:uppercase;opacity:.8}
+.nav{display:flex;flex-direction:column;gap:6px;flex:1}
+.nav-item{display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:13px;
+  color:var(--txt-dim);cursor:pointer;font-family:'Rajdhani';font-weight:600;font-size:15px;
+  letter-spacing:1px;transition:.22s;border:1px solid transparent;position:relative}
+.nav-item:hover{color:var(--txt);background:rgba(0,240,255,.06)}
+.nav-item.active{color:#031119;background:var(--grad);
+  box-shadow:0 8px 24px rgba(0,240,255,.32);border-color:transparent}
+.nav-item.active i,.nav-item.active svg{color:#031119}
+.nav-item i,.nav-item svg{width:19px;height:19px;flex:none;transition:.22s}
+.nav-item small{margin-left:auto;font-size:10px;opacity:.55;font-family:'Orbitron'}
+.sb-user{padding:14px;border-radius:14px;margin-top:12px;
+  background:rgba(6,10,22,.6);border:1px solid var(--line-soft)}
+.sb-user .row{display:flex;align-items:center;gap:9px;font-family:'Rajdhani';font-weight:600;
+  font-size:13px;color:var(--txt-dim)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none;
+  box-shadow:0 0 10px var(--ok);animation:blink 2s infinite}
+@keyframes blink{50%{opacity:.35}}
+
+/* content */
+.content{flex:1;min-width:0;padding:28px 30px;overflow-y:auto}
+.content::-webkit-scrollbar{width:8px}
+.content::-webkit-scrollbar-thumb{background:rgba(0,240,255,.22);border-radius:8px}
+.tab-panel{display:none;animation:fadeIn .35s}
+.tab-panel.active{display:block}
+.tab-head{margin-bottom:24px}
+.tab-head h1{font-family:'Orbitron';font-size:24px;letter-spacing:1px;
+  display:flex;align-items:center;gap:12px}
+.tab-head h1 i,.tab-head h1 svg{color:var(--cyan);width:26px;height:26px;flex:none;filter:drop-shadow(0 0 8px rgba(0,240,255,.6))}
+.tab-head p{color:var(--txt-dim);font-size:13px;margin-top:6px;font-family:'Rajdhani';letter-spacing:.6px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.pill{display:flex;align-items:center;gap:14px;padding:20px;border-radius:16px;cursor:pointer;
+  background:rgba(6,10,22,.55);border:1px solid var(--line-soft);transition:.25s;position:relative;overflow:hidden}
+.pill:hover{transform:translateY(-3px);border-color:var(--line);box-shadow:0 12px 30px rgba(0,240,255,.14)}
+.pill .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none;
+  background:rgba(0,240,255,.09);border:1px solid var(--line);color:var(--cyan);transition:.25s}
+.pill .ic i,.pill .ic svg{width:21px;height:21px}
+.pill .txt b{display:block;font-family:'Rajdhani';font-weight:700;font-size:16px;letter-spacing:.6px}
+.pill .txt span{font-size:11px;color:var(--txt-dim);letter-spacing:.5px}
+.pill.on{background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(0,240,255,.12));
+  border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset,0 0 34px rgba(0,240,255,.3)}
+.pill.on .ic{background:var(--grad);color:#031119;border-color:transparent;box-shadow:0 0 20px rgba(0,240,255,.55)}
+.pill.on::after{content:"";position:absolute;top:14px;right:14px;width:9px;height:9px;border-radius:50%;
+  background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:blink 1.5s infinite}
+
+.card{border-radius:18px;padding:22px;background:rgba(6,10,22,.55);
+  border:1px solid var(--line-soft);margin-top:18px}
+.card .card-t{font-family:'Rajdhani';font-weight:700;font-size:15px;letter-spacing:1px;
+  margin-bottom:18px;display:flex;align-items:center;gap:10px;color:var(--txt)}
+.card .card-t i,.card .card-t svg{width:18px;height:18px;color:var(--cyan);flex:none}
+
+/* slider */
+.slider-row{display:flex;align-items:center;gap:18px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:8px;border-radius:8px;
+  background:linear-gradient(90deg,var(--blue),var(--cyan));outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:#eaf9ff;border:3px solid var(--cyan);cursor:grab;
+  box-shadow:0 0 0 4px rgba(0,240,255,.18),0 0 20px rgba(0,240,255,.7);transition:.15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#eaf9ff;
+  border:3px solid var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.7);cursor:grab}
+.val-badge{min-width:78px;text-align:center;font-family:'Orbitron';font-weight:700;font-size:15px;
+  padding:11px 12px;border-radius:12px;background:rgba(0,240,255,.1);
+  border:1px solid var(--line);color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.14)}
+
+.btn-action{margin-top:18px;width:auto;padding:13px 26px;font-size:12px}
+.btn-ghost2{background:rgba(0,240,255,.08);color:var(--cyan);border:1px solid var(--line)}
+.btn-ghost2:hover{background:rgba(0,240,255,.16);box-shadow:0 0 24px rgba(0,240,255,.25)}
+.btn-danger{background:linear-gradient(135deg,#ff4d6d,#ff2e63);color:#fff;
+  box-shadow:0 10px 30px rgba(255,77,109,.3)}
+.btn-danger:hover{filter:brightness(1.1);box-shadow:0 14px 40px rgba(255,77,109,.5)}
+
+/* toggles */
+.toggle-row{display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:14px;
+  background:rgba(6,10,22,.5);border:1px solid var(--line-soft);margin-bottom:11px;transition:.22s}
+.toggle-row:hover{border-color:var(--line);background:rgba(0,240,255,.05)}
+.toggle-row .info{flex:1}
+.toggle-row .info b{font-family:'Rajdhani';font-weight:700;font-size:15px;letter-spacing:.6px;display:block}
+.toggle-row .info span{font-size:11px;color:var(--txt-dim)}
+.switch{position:relative;width:56px;height:30px;flex:none;cursor:pointer}
+.switch input{display:none}
+.track{position:absolute;inset:0;border-radius:30px;background:rgba(6,10,22,.9);
+  border:1px solid var(--line-soft);transition:.28s}
+.track::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+  background:#54688c;transition:.28s cubic-bezier(.3,1.4,.5,1)}
+.switch input:checked + .track{background:linear-gradient(135deg,rgba(59,130,246,.5),rgba(0,240,255,.4));
+  border-color:var(--cyan);box-shadow:0 0 18px rgba(0,240,255,.35)}
+.switch input:checked + .track::after{left:29px;background:#eaf9ff;box-shadow:0 0 14px var(--cyan)}
+
+/* progress */
+.progress{height:10px;border-radius:10px;background:rgba(6,10,22,.9);overflow:hidden;
+  border:1px solid var(--line-soft);margin-top:16px;display:none}
+.progress.show{display:block}
+.progress .bar{height:100%;width:0;border-radius:10px;background:var(--grad);
+  box-shadow:0 0 18px rgba(0,240,255,.6);transition:width .2s}
+
+/* account / countdown */
+.acct-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;margin-top:6px}
+.time-box{padding:18px 12px;border-radius:16px;text-align:center;background:rgba(6,10,22,.6);
+  border:1px solid var(--line-soft);position:relative;overflow:hidden}
+.time-box::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad);opacity:.7}
+.time-box .n{font-family:'Orbitron';font-weight:900;font-size:32px;color:var(--cyan);
+  text-shadow:0 0 22px rgba(0,240,255,.6);line-height:1}
+.time-box .l{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--txt-dim);margin-top:8px}
+.kv{display:flex;justify-content:space-between;padding:13px 4px;border-bottom:1px solid var(--line-soft);
+  font-family:'Rajdhani';font-weight:600;font-size:14px;letter-spacing:.5px}
+.kv:last-child{border-bottom:none}
+.kv span{color:var(--txt-dim)}
+.kv b{color:var(--txt)}
+.badge-ok{color:var(--ok);background:rgba(34,230,165,.12);border:1px solid rgba(34,230,165,.4);
+  padding:4px 12px;border-radius:20px;font-size:12px}
+
+/* ===== TOASTS ===== */
+#toasts{position:fixed;top:22px;right:22px;z-index:9999;display:flex;flex-direction:column;
+  gap:12px;max-width:360px}
+.toast{display:flex;gap:13px;padding:15px 17px;border-radius:14px;min-width:270px;
+  background:var(--glass-hi);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line);box-shadow:0 18px 45px rgba(0,0,0,.6),0 0 30px rgba(0,240,255,.14);
+  transform:translateX(140%);animation:toastIn .45s cubic-bezier(.2,.9,.2,1) forwards;
+  position:relative;overflow:hidden}
+.toast.out{animation:toastOut .4s forwards}
+@keyframes toastIn{to{transform:none}}
+@keyframes toastOut{to{transform:translateX(140%);opacity:0}}
+.toast::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cyan)}
+.toast.ok::before{background:var(--ok)}
+.toast.err::before{background:var(--danger)}
+.toast.warn::before{background:var(--warn)}
+.toast .tic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;
+  background:rgba(0,240,255,.1);border:1px solid var(--line);color:var(--cyan)}
+.toast.ok .tic{background:rgba(34,230,165,.12);color:var(--ok);border-color:rgba(34,230,165,.4)}
+.toast.err .tic{background:rgba(255,77,109,.12);color:var(--danger);border-color:rgba(255,77,109,.4)}
+.toast.warn .tic{background:rgba(255,207,92,.12);color:var(--warn);border-color:rgba(255,207,92,.4)}
+.toast .tic i,.toast .tic svg{width:18px;height:18px}
+.toast .tc b{display:block;font-family:'Rajdhani';font-weight:700;font-size:14px;letter-spacing:.6px}
+.toast .tc span{font-size:12px;color:var(--txt-dim)}
+.toast .tbar{position:absolute;bottom:0;left:0;height:2px;background:var(--grad);width:100%;
+  transform-origin:left;animation:tbar 3.4s linear forwards}
+@keyframes tbar{to{transform:scaleX(0)}}
+
+/* antistream overlay */
+#antiStream{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.98);
+  display:none;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:14px}
+#antiStream.show{display:flex}
+#antiStream .gl{font-family:'Orbitron';font-size:20px;letter-spacing:4px;color:var(--cyan);
+  text-shadow:0 0 24px rgba(0,240,255,.7)}
+#antiStream .sub{color:var(--txt-dim);font-family:'Rajdhani';letter-spacing:2px;font-size:13px}
+#antiStream button{margin-top:10px;padding:12px 26px;border-radius:12px;cursor:pointer;
+  background:rgba(0,240,255,.1);color:var(--cyan);border:1px solid var(--line);
+  font-family:'Orbitron';font-size:12px;letter-spacing:2px}
+#antiStream button:hover{background:rgba(0,240,255,.2)}
+
+/* ===== FAB (bola flutuante) — estática, limpa e discreta ===== */
+/* ===== MODO JANELA FLUTUANTE (?floating=1) ===== */
+body.floating-mode #loginView{background:var(--bg)}
+body.floating-mode #dashView{background:var(--bg);padding:0}
+body.floating-mode .scaler{width:100%;height:100vh;height:100dvh}
+body.floating-mode .panel{border-radius:0;border:none}
+body.floating-mode .sidebar{padding-top:calc(22px + env(safe-area-inset-top))}
+body.floating-mode .content{padding-top:calc(28px + env(safe-area-inset-top))}
+body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+
+/* botao flutuante "abrir janela" (tela de login) */
+.float-launch{position:fixed;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:50;
+  display:flex;align-items:center;gap:8px;padding:10px 15px;border-radius:12px;cursor:pointer;
+  background:var(--glass-hi);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid var(--line);color:var(--cyan);font-family:'Rajdhani';font-weight:700;
+  font-size:12px;letter-spacing:1px;transition:.22s}
+.float-launch:hover{background:rgba(0,240,255,.16);box-shadow:0 0 18px rgba(0,240,255,.3)}
+.float-launch i,.float-launch svg{width:16px;height:16px}
+
+#fab{position:fixed;z-index:99999;width:62px;height:62px;padding:0;border-radius:50%;cursor:grab;
+  display:none;align-items:center;justify-content:center;touch-action:none;appearance:none;
+  background:#0d1527;border:1.5px solid #2b6fd6;overflow:hidden;
+  box-shadow:0 6px 18px rgba(0,0,0,.55);
+  user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+#fab.show{display:flex}
+#fab.hide{display:flex;opacity:0;transition:opacity .2s}
+#fab:active{cursor:grabbing}
+#fab img{width:84%;height:84%;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+
+/* zona discreta para reexibir (canto superior esquerdo) */
+#fabHotzone{position:fixed;top:0;left:0;width:68px;height:68px;z-index:99998;display:none}
+#fabHotzone.show{display:block}
+
+/* barra de notificação flutuante temporária */
+#fabNotice{position:fixed;left:50%;bottom:26px;z-index:100000;
+  transform:translateX(-50%) translateY(140%);
+  display:flex;align-items:center;gap:10px;max-width:92vw;
+  padding:12px 20px;border-radius:12px;
+  background:var(--glass-hi);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--line);color:var(--txt);
+  font-family:'Rajdhani';font-weight:600;font-size:13px;letter-spacing:.5px;
+  box-shadow:0 14px 40px rgba(0,0,0,.6);
+  transition:transform .35s cubic-bezier(.2,.9,.2,1)}
+#fabNotice.show{transform:translateX(-50%) translateY(0)}
+#fabNotice i,#fabNotice svg{width:18px;height:18px;color:var(--cyan);flex:none}
+
+/* responsive */
+@media(max-width:820px){
+  #dashView{padding:8px}
+  .scaler{width:100%;height:94vh}
+  .panel{flex-direction:column}
+  .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--line-soft)}
+  .nav{flex-direction:row;flex-wrap:wrap}
+  .nav-item{flex:1 1 40%}
+  .content{padding:20px 16px}
+  .win-min{top:10px;right:10px;width:34px;height:34px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-fx"></div>
+<div class="scanlines"></div>
+
+<!-- ================= LOGIN ================= -->
+<section id="loginView" class="screen">
+  <button class="float-launch" id="floatLaunch" title="Abrir o painel em janela flutuante">
+    <i data-lucide="picture-in-picture-2"></i>JANELA FLUTUANTE
+  </button>
+  <div class="login-card">
+    <div class="logo-wrap">
+      <img src="fonts/logonunes.png" alt="Sabor Hack" onerror="this.style.display='none'"/>
+    </div>
+    <div class="brand-tag neon-title">Sabor Hack <span>// Secure Access</span></div>
+
+    <label class="field-label">Chave de Acesso</label>
+    <div class="input-wrap">
+      <input id="keyInput" type="text" spellcheck="false" autocomplete="off"
+             placeholder="DIGITE SUA CHAVE DE ACESSO" />
+      <i data-lucide="key-round"></i>
+    </div>
+
+    <label class="remember">
+      <input type="checkbox" id="rememberChk" />
+      <span class="checkmark"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      Lembrar minha Key
+    </label>
+
+    <button class="btn btn-primary" id="loginBtn">
+      <span class="lbl">ENTRAR NO SISTEMA</span>
+    </button>
+
+    <button class="btn btn-ghost" id="discordBtn">
+      <i data-lucide="message-circle" style="width:15px;height:15px"></i>
+      OBTER ACESSO VIA DISCORD
+    </button>
+
+    <div class="status-msg" id="loginStatus"></div>
+  </div>
+</section>
+
+<!-- ================= DASHBOARD ================= -->
+<section id="dashView" class="screen hidden">
+  <div class="scaler" id="scaler">
+    <aside class="panel" id="dashPanel">
+      <div class="win-bar" id="winBar">
+        <img class="logo" src="fonts/icone.png" alt="" onerror="this.style.display='none'"/>
+        <div class="ttl">SABOR <span>HACK</span></div>
+        <button id="apkMin" title="Minimizar painel"><i data-lucide="minus"></i></button>
+        <button id="apkHide" title="Ocultar overlay"><i data-lucide="eye-off"></i></button>
+        <button id="apkEnd" title="Encerrar sessao"><i data-lucide="log-out"></i></button>
+      </div>
+      <button class="win-min" id="minBtn" title="Minimizar para a bola flutuante"><i data-lucide="minus"></i></button>
+      <div class="sidebar">
+        <div class="sb-brand">
+          <img src="fonts/icone.png" alt="Sabor Hack" onerror="this.src='fonts/logonunes.png'"/>
+          <div>
+            <div class="t">SABOR HACK</div>
+            <div class="s">v1.0</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <div class="nav-item active" data-tab="sensi"><i data-lucide="crosshair"></i>Sensi</div>
+          <div class="nav-item" data-tab="metodos"><i data-lucide="eye"></i>Métodos</div>
+          <div class="nav-item" data-tab="tamanho"><i data-lucide="scaling"></i>Tamanho</div>
+          <div class="nav-item" data-tab="ajustes"><i data-lucide="settings"></i>Ajustes</div>
+          <div class="nav-item" data-tab="conta"><i data-lucide="user"></i>Conta</div>
+        </nav>
+        <div class="sb-user">
+          <div class="row"><span class="dot"></span><span id="sbStatus">Sessão Ativa</span></div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- SENSI -->
+        <div class="tab-panel active" id="tab-sensi">
+          <div class="tab-head">
+            <h1><i data-lucide="crosshair"></i>Sensi</h1>
+            <p>Presets de sensibilidade e controle de estabilidade</p>
+          </div>
+          <div class="grid">
+            <div class="pill" data-sensi="Sensi Neve">
+              <div class="ic"><i data-lucide="snowflake"></i></div>
+              <div class="txt"><b>Sensi Neve</b><span>Precisão leve e suave</span></div>
+            </div>
+            <div class="pill" data-sensi="Sensi Pesada">
+              <div class="ic"><i data-lucide="anvil"></i></div>
+              <div class="txt"><b>Sensi Pesada</b><span>Controle firme da mira</span></div>
+            </div>
+            <div class="pill" data-sensi="Full Capa">
+              <div class="ic"><i data-lucide="shield"></i></div>
+              <div class="txt"><b>Full Capa</b><span>Máxima cobertura</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-t"><i data-lucide="activity"></i>Controle de Estabilidade</div>
+            <div class="slider-row">
+              <input type="range" id="stabRange" min="0" max="100" value="10" />
+              <div class="val-badge" id="stabVal">10%</div>
+            </div>
+            <button class="btn btn-primary btn-action" id="applyStab">
+              <i data-lucide="zap" style="width:15px;height:15px"></i>APLICAR ESTABILIDADE
+            </button>
+          </div>
+        </div>
+
+        <!-- METODOS -->
+        <div class="tab-panel" id="tab-metodos">
+          <div class="tab-head">
+            <h1><i data-lucide="eye"></i>Métodos</h1>
+            <p>Ative ou desative recursos do sistema</p>
+          </div>
+          <div class="toggle-row">
+            <div class="info"><b>Forçar 120 FPS</b><span>Desbloqueia o limite de quadros</span></div>
+            <label class="switch"><input type="checkbox" data-method="Forçar 120 FPS"><span class="track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="info"><b>Reduzir Recoil</b><span>Diminui o recuo das armas</span></div>
+            <label class="switch"><input type="checkbox" data-method="Reduzir Recoil"><span class="track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="info"><b>Não Passar da Cabeça</b><span>Trava a mira no alvo</span></div>
+            <label class="switch"><input type="checkbox" data-method="Não Passar da Cabeça"><span class="track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="info"><b>Aim Precision</b><span>Ajuste fino de precisão</span></div>
+            <label class="switch"><input type="checkbox" data-method="Aim Precision"><span class="track"></span></label>
+          </div>
+
+          <button class="btn btn-ghost2 btn-action" id="cleanBtn">
+            <i data-lucide="trash-2" style="width:15px;height:15px"></i>LIMPAR ARQUIVOS TEMPORÁRIOS
+          </button>
+          <div class="progress" id="cleanProgress"><div class="bar" id="cleanBar"></div></div>
+        </div>
+
+        <!-- TAMANHO -->
+        <div class="tab-panel" id="tab-tamanho">
+          <div class="tab-head">
+            <h1><i data-lucide="scaling"></i>Tamanho</h1>
+            <p>Ajuste a escala do painel para qualquer resolução</p>
+          </div>
+          <div class="card">
+            <div class="card-t"><i data-lucide="maximize"></i>Escala do Painel</div>
+            <div class="slider-row">
+              <input type="range" id="scaleRange" min="10" max="100" value="100" />
+              <div class="val-badge" id="scaleVal">100%</div>
+            </div>
+            <button class="btn btn-primary btn-action" id="resetScale">
+              <i data-lucide="rotate-ccw" style="width:15px;height:15px"></i>RESTAURAR ESCALA
+            </button>
+          </div>
+        </div>
+
+        <!-- AJUSTES -->
+        <div class="tab-panel" id="tab-ajustes">
+          <div class="tab-head">
+            <h1><i data-lucide="settings"></i>Ajustes</h1>
+            <p>Configurações gerais do painel</p>
+          </div>
+          <div class="toggle-row">
+            <div class="info"><b>Modo Anti-Stream (WhatsApp / Discord)</b><span>Oculta o painel de capturas de tela</span></div>
+            <label class="switch"><input type="checkbox" id="antiStreamChk"><span class="track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="info"><b>Esconder Ícone Flutuante</b><span>Oculta a bola sobre o jogo (reabra com 3 toques no canto superior esquerdo ou Ctrl+Shift+H)</span></div>
+            <label class="switch"><input type="checkbox" id="fabHideChk"><span class="track"></span></label>
+          </div>
+          <button class="btn btn-ghost2 btn-action" id="closePanelBtn">
+            <i data-lucide="power" style="width:15px;height:15px"></i>FECHAR PAINEL
+          </button>
+          <button class="btn btn-ghost2 btn-action" id="floatBtn">
+            <i data-lucide="picture-in-picture-2" style="width:15px;height:15px"></i>ABRIR EM JANELA FLUTUANTE
+          </button>
+          <button class="btn btn-danger btn-action" id="logoutBtn">
+            <i data-lucide="log-out" style="width:15px;height:15px"></i>ENCERRAR SESSÃO / SAIR
+          </button>
+        </div>
+
+        <!-- CONTA -->
+        <div class="tab-panel" id="tab-conta">
+          <div class="tab-head">
+            <h1><i data-lucide="user"></i>Conta</h1>
+            <p>Status da sua licença obtida via KeyAuth</p>
+          </div>
+          <div class="card">
+            <div class="kv"><span>Licença</span><b class="badge-ok" id="acctLicense">—</b></div>
+            <div class="kv"><span>Status</span><b id="acctStatus">—</b></div>
+            <div class="kv"><span>Expira em</span><b id="acctExpiry">—</b></div>
+          </div>
+          <div class="acct-grid" style="margin-top:18px">
+            <div class="time-box"><div class="n" id="cdDays">00</div><div class="l">Dias</div></div>
+            <div class="time-box"><div class="n" id="cdHours">00</div><div class="l">Horas</div></div>
+            <div class="time-box"><div class="n" id="cdMins">00</div><div class="l">Minutos</div></div>
+            <div class="time-box"><div class="n" id="cdSecs">00</div><div class="l">Segundos</div></div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ================= TOASTS / OVERLAY ================= -->
+<div id="toasts"></div>
+
+<button id="fab" class="hidden" title="Abrir painel Sabor Hack">
+  <img src="fonts/icone.png" alt="Sabor Hack" onerror="this.src='fonts/logonunes.png'"/>
+</button>
+
+<div id="fabHotzone" title="Toque 3x para reexibir o ícone"></div>
+
+<div id="fabNotice">
+  <i data-lucide="eye-off"></i>
+  <span id="fabNoticeTxt">Ícone oculto. Toque 3x no canto superior esquerdo ou pressione Ctrl+Shift+H para reexibir.</span>
+</div>
+
+<div id="antiStream">
+  <div class="gl">PROTEÇÃO ANTI-STREAM ATIVA</div>
+  <div class="sub">Exibição oculta em capturas e transmissões</div>
+  <button id="closeAnti">DESATIVAR</button>
+</div>
+
+<script>
+/* ============================================================
+   SABOR HACK — Painel cibernético + KeyAuth REST
+   ============================================================ */
+const KEYAUTH = {
+  url:"https://keyauth.win/api/1.2/",
+  name:"Sabor Hack",
+  ownerid:"kQOAZEERof",
+  version:"1.0",
+  secret:"796f067176d0bddb865c117303f8731af1d5554646385e9dd6a0ff517047f365"
+};
+
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const icons = ()=>window.lucide && lucide.createIcons();
+
+/* ---------- storage ---------- */
+const LS_KEY="saborhack_key";
+const LS_REM="saborhack_remember";
+const LS_SESS="saborhack_session";
+const LS_FAB="saborhack_fabpos";
+const LS_FABHIDE="saborhack_fabhide";
+
+/* Modo janela flutuante: ?floating=1 (aberta em popup/aba) */
+const QS = new URLSearchParams(location.search);
+const FLOATING = QS.get("floating")==="1" || QS.get("mode")==="floating" || location.hash==="#floating";
+const PANEL_W = 452, PANEL_H = 820;
+
+/* Deteccao de Android / WebView (APK) */
+const UA = navigator.userAgent || "";
+const IS_ANDROID = /Android/i.test(UA);
+const HAS_BRIDGE = !!(window.Android || window.SaborHackAndroid || window.ReactNativeWebView);
+const IS_WEBVIEW = HAS_BRIDGE || /; wv\)/i.test(UA) ||
+  (IS_ANDROID && /Version\/[\d.]+/i.test(UA) && /Chrome\/[\d.]+/i.test(UA));
+const APK_MODE = QS.get("apk")==="1" || (IS_WEBVIEW && QS.get("web")!=="1");
+
+/* ===== Ponte nativa JS <-> Android (APK) ===== */
+function nativeCall(method, ...args){
+  try{
+    if(window.Android && typeof window.Android[method]==="function") return window.Android[method](...args);
+    if(window.SaborHackAndroid && typeof window.SaborHackAndroid[method]==="function") return window.SaborHackAndroid[method](...args);
+  }catch(_){}
+  return null;
+}
+function hasNative(){ return !!(window.Android || window.SaborHackAndroid); }
+
+/* API exposta para o app nativo (via evaluateJavascript ou addJavascriptInterface) */
+window.SaborHack = {
+  open(){          openPanel();                 nativeCall("onPanelOpened"); },
+  close(){         minimizePanel();             nativeCall("onPanelClosed"); },
+  minimize(){      minimizePanel(); },
+  showFab(){       setFabHidden(false); },
+  hideFab(){       setFabHidden(true); },
+  logout(){        logout();                    nativeCall("onLogout"); },
+  applyHide(){     /* chamado pelo nativo ao esconder o overlay */
+                   const f=$("#fab"); if(f) f.classList.add("hidden"); },
+  isLoggedIn(){    try{ return !!JSON.parse(localStorage.getItem(LS_SESS)||"{}").key; }catch(_){ return false; } },
+  version(){       return "1.0"; },
+  requestOverlay(){ nativeCall("requestOverlayPermission"); },
+  startOverlay(){   nativeCall("startOverlay"); },
+  stopOverlay(){    nativeCall("stopOverlay"); }
+};
+/* funcoes globais (faceis de chamar por evaluateJavascript do Android) */
+function SaborHackOpen(){ window.SaborHack.open(); }
+function SaborHackClose(){ window.SaborHack.close(); }
+function SaborHackMinimize(){ window.SaborHack.minimize(); }
+function SaborHackLogout(){ window.SaborHack.logout(); }
+function SaborHackHideFab(){ window.SaborHack.hideFab(); }
+function SaborHackShowFab(){ window.SaborHack.showFab(); }
+function SaborHackIsLoggedIn(){ return window.SaborHack.isLoggedIn(); }
+function SaborHackVersion(){ return window.SaborHack.version(); }
+
+/* ---------- Toasts ---------- */
+function toast(title,msg="",type="info",time=3400){
+  const map={
+    ok:{i:"check-circle",t:"ok"}, err:{i:"x-circle",t:"err"},
+    warn:{i:"alert-triangle",t:"warn"}, info:{i:"info",t:"info"}
+  };
+  const c=map[type]||map.info;
+  const el=document.createElement("div");
+  el.className="toast "+c.t;
+  el.innerHTML=`
+    <div class="tic"><i data-lucide="${c.i}"></i></div>
+    <div class="tc"><b>${title}</b>${msg?`<span>${msg}</span>`:""}</div>
+    <div class="tbar"></div>`;
+  $("#toasts").appendChild(el);
+  icons();
+  setTimeout(()=>{el.classList.add("out");setTimeout(()=>el.remove(),400);},time);
+}
+
+/* ---------- Login UI ---------- */
+function setLoginBusy(busy){
+  const btn=$("#loginBtn");
+  if(busy){
+    btn.disabled=true;
+    btn.innerHTML='<span class="spin"></span>AUTENTICANDO...';
+  }else{
+    btn.disabled=false;
+    btn.innerHTML='<span class="lbl">ENTRAR NO SISTEMA</span>';
+  }
+}
+function statusMsg(txt,type){const s=$("#loginStatus");s.textContent=txt||"";s.className="status-msg "+(type||"");}
+
+/* ---------- KeyAuth REST ---------- */
+let sessionId = null;
+
+async function keyauthPost(params){
+  const body = new URLSearchParams(params);
+  const res = await fetch(KEYAUTH.url,{
+    method:"POST",
+    headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body:body.toString()
+  });
+  return res.json();
+}
+
+async function keyauthInit(){
+  const data = await keyauthPost({
+    type:"init",
+    name:KEYAUTH.name,
+    ownerid:KEYAUTH.ownerid,
+    version:KEYAUTH.version
+  });
+  if(!data.success) throw new Error(data.message||"Falha ao inicializar a API.");
+  sessionId = data.sessionid;
+  return data;
+}
+
+async function keyauthLicense(key){
+  if(!sessionId) await keyauthInit();
+  const data = await keyauthPost({
+    type:"license",
+    key:key,
+    sessionid:sessionId,
+    name:KEYAUTH.name,
+    ownerid:KEYAUTH.ownerid
+  });
+  if(!data.success) throw new Error(data.message||"Chave inválida ou expirada.");
+  return data;
+}
+
+/* ---------- Parsing robusto de expiração (KeyAuth) ---------- */
+function parseExpiryMs(v){
+  if(v===null||v===undefined||v==="") return null;
+  if(typeof v==="number"){
+    if(!isFinite(v)||v<=0) return null;
+    return v<1e12 ? v*1000 : v;               /* segundos -> ms */
+  }
+  const s=String(v).trim();
+  if(s==="" || /^(none|lifetime|permanent|permanente|never|no|0)$/i.test(s)) return null;
+  if(/^\d+$/.test(s)){
+    const n=parseInt(s,10);
+    if(!n) return null;
+    return n<1e12 ? n*1000 : n;               /* segundos -> ms */
+  }
+  const d=new Date(s.replace(" ","T"));
+  if(isNaN(d.getTime())){
+    const d2=new Date(s);
+    return isNaN(d2.getTime()) ? null : d2.getTime();
+  }
+  return d.getTime();
+}
+function getExpiryMs(info){
+  if(!info) return null;
+  const subs=info.subscriptions;
+  if(Array.isArray(subs) && subs.length){
+    const e=subs[0].expiry!==undefined?subs[0].expiry
+           :subs[0].expires!==undefined?subs[0].expires
+           :subs[0].exp;
+    if(e!==undefined && e!==null && e!=="") return parseExpiryMs(e);
+  }
+  const e2=info.expiry!==undefined?info.expiry
+          :info.expires!==undefined?info.expires
+          :info.exp;
+  return parseExpiryMs(e2);
+}
+
+/* ---------- Login flow ---------- */
+async function doLogin(){
+  const key=$("#keyInput").value.trim();
+  if(!key){ statusMsg("Digite sua chave de acesso.","err"); toast("Atenção","Informe uma chave de acesso.","warn"); return; }
+
+  setLoginBusy(true);
+  statusMsg("Conectando ao servidor KeyAuth...","");
+  try{
+    let licenseData = null;
+    let apiOnline = true;
+    try{
+      licenseData = await keyauthLicense(key);
+    }catch(err){
+      /* Se o fetch falhar (CORS/offline), cai no fallback local */
+      if(err instanceof TypeError){
+        apiOnline=false;
+        throw {network:true};
+      }
+      throw {api:err.message};
+    }
+
+    if($("#rememberChk").checked){
+      localStorage.setItem(LS_KEY,key);
+      localStorage.setItem(LS_REM,"1");
+    }else{
+      localStorage.removeItem(LS_KEY);
+      localStorage.removeItem(LS_REM);
+    }
+
+    const info = licenseData.info || {};
+    localStorage.setItem(LS_SESS,JSON.stringify({
+      key:key,
+      username:info.username||info.email||"Licenciado",
+      expires:getExpiryMs(info),
+      raw:info
+    }));
+
+    statusMsg("Acesso Permitido!","ok");
+    toast("Acesso Permitido!","Bem-vindo ao Sabor Hack.","ok");
+    setTimeout(enterDashboard,700);
+
+  }catch(e){
+    if(e.network){
+      statusMsg("Não foi possível contatar o servidor KeyAuth. Verifique sua conexão ou desative bloqueadores (CORS).","err");
+      toast("Erro de conexão","Falha ao contatar o servidor KeyAuth.","err");
+    }else{
+      statusMsg(e.api||"Chave inválida.","err");
+      toast("Acesso Negado",e.api||"Chave inválida ou expirada.","err");
+    }
+  }finally{
+    setLoginBusy(false);
+  }
+}
+
+/* ---------- Dashboard / FAB ---------- */
+let countdownTimer=null;
+
+/* Após o login: esconde o login e mostra apenas a bola flutuante */
+function enterDashboard(){
+  $("#loginView").classList.add("hidden");
+  placeFab();
+  showFab();
+  if(localStorage.getItem(LS_FABHIDE)==="1"){
+    toast("Ícone Oculto","Reabra com 3 toques no canto superior esquerdo ou Ctrl+Shift+H.","warn",5000);
+  }else{
+    toast("Painel Minimizado","Clique na bola flutuante para abrir o painel.","info",5000);
+  }
+}
+
+/* Bola flutuante */
+function showFab(){
+  const f=$("#fab"), zone=$("#fabHotzone");
+  if(localStorage.getItem(LS_FABHIDE)==="1"){
+    f.classList.add("hidden"); f.classList.remove("show","hide");
+    if(zone) zone.classList.add("show");
+    return;
+  }
+  if(zone) zone.classList.remove("show");
+  f.classList.remove("hidden","hide");
+  f.classList.add("show");
+}
+function hideFab(){
+  const f=$("#fab");
+  f.classList.add("hide");
+  setTimeout(()=>{ if(f.classList.contains("hide")){ f.classList.add("hidden"); f.classList.remove("show","hide"); } },300);
+}
+function placeFab(){
+  const f=$("#fab"), S=62;
+  let x=null,y=null;
+  try{ const o=JSON.parse(localStorage.getItem(LS_FAB)||"null"); if(o){x=o.x;y=o.y;} }catch(_){}
+  if(x==null){ x=window.innerWidth-S-28; y=window.innerHeight-S-40; }
+  x=Math.max(6,Math.min(window.innerWidth-S-6,x));
+  y=Math.max(6,Math.min(window.innerHeight-S-6,y));
+  f.style.left=x+"px"; f.style.top=y+"px"; f.style.right="auto"; f.style.bottom="auto";
+}
+
+/* Abre o painel modal a partir da bola */
+function openPanel(){
+  hideFab();
+  const d=$("#dashView");
+  d.classList.remove("hidden");
+  const p=$("#dashPanel");
+  p.classList.remove("dash-out");
+  void p.offsetWidth;
+  p.classList.add("dash-in");
+  icons();
+  loadAccount();
+  initCountdown();
+}
+
+/* Minimiza o painel: oculta e traz de volta a bola flutuante */
+function minimizePanel(){
+  const p=$("#dashPanel");
+  p.classList.add("dash-out");
+  setTimeout(()=>{
+    $("#dashView").classList.add("hidden");
+    p.classList.remove("dash-out","dash-in");
+    showFab();
+  },450);
+}
+
+/* Encerra a sessão por completo e retorna ao login */
+function logout(){
+  if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+  const p=$("#dashPanel");
+  p.classList.add("dash-out");
+  hideFab();
+  $("#fabHotzone").classList.remove("show");
+  $("#fabNotice").classList.remove("show");
+  setTimeout(()=>{
+    $("#dashView").classList.add("hidden");
+    p.classList.remove("dash-out","dash-in");
+    localStorage.removeItem(LS_SESS);
+    statusMsg("","");
+    $("#loginView").classList.remove("hidden");
+  },450);
+}
+
+/* Visibilidade do ícone flutuante (esconder / mostrar) */
+let noticeTimer=null;
+function showFabNotice(){
+  const n=$("#fabNotice");
+  if(!n) return;
+  n.classList.add("show");
+  icons();
+  clearTimeout(noticeTimer);
+  noticeTimer=setTimeout(()=>n.classList.remove("show"),6000);
+}
+function setFabHidden(hide){
+  const chk=$("#fabHideChk"), f=$("#fab"), zone=$("#fabHotzone");
+  if(chk) chk.checked=hide;
+  if(hide){
+    localStorage.setItem(LS_FABHIDE,"1");
+    f.classList.add("hidden"); f.classList.remove("show","hide");
+    if(zone) zone.classList.add("show");
+    showFabNotice();
+  }else{
+    localStorage.removeItem(LS_FABHIDE);
+    showFab();
+  }
+}
+function initFabVisibility(){
+  const zone=$("#fabHotzone");
+  let taps=0, tapTimer=null;
+  zone.addEventListener("click",()=>{
+    taps++;
+    clearTimeout(tapTimer);
+    tapTimer=setTimeout(()=>{ taps=0; },1500);
+    if(taps>=3){
+      taps=0;
+      setFabHidden(false);
+      toast("Ícone Restaurado","A bola flutuante voltou.","ok");
+    }
+  });
+  $("#fabHideChk").addEventListener("change",function(){
+    setFabHidden(this.checked);
+    if(this.checked){
+      toast("Ícone Oculto","Toque 3x no canto superior esquerdo ou Ctrl+Shift+H.","warn",5000);
+    }else{
+      toast("Ícone Visível","A bola flutuante está ativa novamente.","ok");
+    }
+  });
+  document.addEventListener("keydown",e=>{
+    if(e.ctrlKey && e.shiftKey && (e.key==="H"||e.key==="h")){
+      e.preventDefault();
+      const hidden=localStorage.getItem(LS_FABHIDE)==="1";
+      setFabHidden(!hidden);
+      toast(hidden?"Ícone Restaurado":"Ícone Oculto",
+            hidden?"A bola flutuante voltou.":"Reabra com Ctrl+Shift+H.",
+            hidden?"ok":"warn");
+    }
+  });
+}
+
+/* ---------- Janela flutuante / PWA ---------- */
+/* Abre o painel numa janela flutuante popup (desktop/Android).
+   No iPhone (Safari) abre numa nova aba — o iOS nao permite sobrepor apps. */
+function openFloatingWindow(){
+  const left=Math.round(Math.max(0,(screen.width-PANEL_W)/2)), top=30;
+  const url=location.pathname+"?floating=1";
+  const w=window.open(url,"SaborHackPanel",
+    "popup=yes,width="+PANEL_W+",height="+PANEL_H+",left="+left+",top="+top+",resizable=yes,scrollbars=yes");
+  if(w){ try{ w.focus(); }catch(_){} }
+  else{ toast("Popup bloqueado","Permita pop-ups para abrir a janela flutuante.","err",5000); }
+}
+
+/* Configuração PWA (instalar como app na tela inicial) */
+function setupPWA(){
+  try{
+    const manifest={
+      name:"Sabor Hack", short_name:"Sabor Hack", start_url:"./", scope:"./",
+      display:"standalone", orientation:"any",
+      background_color:"#060913", theme_color:"#060913",
+      icons:[
+        {src:"fonts/icone.png",sizes:"192x192",type:"image/png",purpose:"any"},
+        {src:"fonts/icone.png",sizes:"512x512",type:"image/png",purpose:"any maskable"}
+      ]
+    };
+    const url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));
+    let l=document.querySelector('link[rel="manifest"]');
+    if(!l){ l=document.createElement("link"); l.rel="manifest"; document.head.appendChild(l); }
+    l.href=url;
+  }catch(_){}
+}
+function initFloating(){
+  const b1=$("#floatBtn"), b2=$("#floatLaunch");
+  if(b1) b1.addEventListener("click",openFloatingWindow);
+  if(b2) b2.addEventListener("click",openFloatingWindow);
+}
+
+/* ---------- Controller do overlay Android (APK) ---------- */
+function initApk(){
+  const bar=$("#winBar");
+  // arrastar a janela do overlay pelo bar
+  let dragging=false, sx=0, sy=0;
+  bar.addEventListener("pointerdown",e=>{
+    dragging=true; sx=e.clientX; sy=e.clientY;
+    bar.style.cursor="grabbing";
+    try{ bar.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  bar.addEventListener("pointermove",e=>{
+    if(!dragging) return;
+    const dx=e.clientX-sx, dy=e.clientY-sy;
+    sx=e.clientX; sy=e.clientY;
+    // se houver ponte nativa, move a janela do overlay; senao, arrasta o painel na pagina
+    if(hasNative()){ nativeCall("moveBy", Math.round(dx), Math.round(dy)); }
+    else{
+      const p=$("#dashPanel");
+      p.style.left=(parseFloat(p.style.left||0)+dx)+"px";
+      p.style.top =(parseFloat(p.style.top ||0)+dy)+"px";
+    }
+  });
+  const end=()=>{ dragging=false; bar.style.cursor="grab"; };
+  bar.addEventListener("pointerup",end);
+  bar.addEventListener("pointercancel",end);
+
+  const min=$("#apkMin"), hide=$("#apkHide"), endb=$("#apkEnd");
+  if(min) min.addEventListener("click",()=>{
+    if(hasNative()) nativeCall("minimizeOverlay");
+    minimizePanel();
+  });
+  if(hide) hide.addEventListener("click",()=>{
+    if(hasNative()) nativeCall("hideOverlay");
+    minimizePanel();
+  });
+  if(endb) endb.addEventListener("click",()=>{
+    toast("Sessão Encerrada","Voltando para a tela de login...","warn",1500);
+    if(hasNative()) nativeCall("onLogout");
+    setTimeout(logout,400);
+  });
+}
+
+/* Drag + clique da bola flutuante */
+function initFab(){
+  const f=$("#fab");
+  let dragging=false, sx=0, sy=0, ox=0, oy=0, moved=false;
+
+  f.addEventListener("pointerdown",e=>{
+    dragging=true; moved=false;
+    const r=f.getBoundingClientRect();
+    sx=e.clientX; sy=e.clientY; ox=r.left; oy=r.top;
+    f.style.transition="none";
+    try{ f.setPointerCapture(e.pointerId); }catch(_){}
+  });
+
+  f.addEventListener("pointermove",e=>{
+    if(!dragging) return;
+    const dx=e.clientX-sx, dy=e.clientY-sy;
+    if(Math.abs(dx)>4||Math.abs(dy)>4) moved=true;
+    const S=f.offsetWidth||62;
+    let nx=ox+dx, ny=oy+dy;
+    nx=Math.max(6,Math.min(window.innerWidth-S-6,nx));
+    ny=Math.max(6,Math.min(window.innerHeight-S-6,ny));
+    f.style.left=nx+"px"; f.style.top=ny+"px"; f.style.right="auto"; f.style.bottom="auto";
+  });
+
+  const end=()=>{
+    if(!dragging) return;
+    dragging=false;
+    f.style.transition="";
+    if(moved){
+      try{ localStorage.setItem(LS_FAB,JSON.stringify({x:parseFloat(f.style.left),y:parseFloat(f.style.top)})); }catch(_){}
+    }
+    f.dataset.wasDrag = moved?"1":"0";
+  };
+  f.addEventListener("pointerup",end);
+  f.addEventListener("pointercancel",end);
+
+  f.addEventListener("click",()=>{
+    if(f.dataset.wasDrag==="1"){ f.dataset.wasDrag="0"; return; }
+    openPanel();
+  });
+
+  window.addEventListener("resize",()=>{ if(!f.classList.contains("hidden")) placeFab(); });
+}
+
+function loadAccount(){
+  let s={};
+  try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
+  const masked = s.key ? (s.key.slice(0,4)+"•••••"+s.key.slice(-4)) : "—";
+  $("#acctLicense").textContent = masked;
+
+  const end = (typeof s.expires==="number" && isFinite(s.expires)) ? s.expires : null;
+  let status="Ativa", expiry="Permanente";
+  if(end){
+    const expired = end - Date.now() <= 0;
+    status = expired ? "Expirada" : "Ativa";
+    expiry = new Date(end).toLocaleString("pt-BR");
+  }
+  $("#acctStatus").textContent = status;
+  $("#acctExpiry").textContent = expiry;
+  $("#sbStatus").textContent = (s.username?"Usuário: "+s.username:"Sessão Ativa");
+}
+
+function initCountdown(){
+  let s={};
+  try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
+  if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+  const end = (typeof s.expires==="number" && isFinite(s.expires)) ? s.expires : null;
+
+  const boxes=[$("#cdDays"),$("#cdHours"),$("#cdMins"),$("#cdSecs")];
+
+  if(!end){ boxes.forEach(b=>b.textContent="∞"); return; }
+
+  const tick=()=>{
+    let ms = end - Date.now();
+    if(ms<0) ms=0;
+    const secs=Math.floor(ms/1000);
+    boxes[0].textContent = String(Math.floor(secs/86400)).padStart(2,"0");
+    boxes[1].textContent = String(Math.floor(secs%86400/3600)).padStart(2,"0");
+    boxes[2].textContent = String(Math.floor(secs%3600/60)).padStart(2,"0");
+    boxes[3].textContent = String(secs%60).padStart(2,"0");
+  };
+  tick();
+  countdownTimer=setInterval(tick,1000);
+}
+
+/* ---------- Tabs ---------- */
+function initTabs(){
+  $$(".nav-item").forEach(item=>{
+    item.addEventListener("click",()=>{
+      $$(".nav-item").forEach(i=>i.classList.remove("active"));
+      item.classList.add("active");
+      $$(".tab-panel").forEach(p=>p.classList.remove("active"));
+      $("#tab-"+item.dataset.tab).classList.add("active");
+    });
+  });
+}
+
+/* ---------- Sensi ---------- */
+function initSensi(){
+  $$("[data-sensi]").forEach(pill=>{
+    pill.addEventListener("click",()=>{
+      $$("[data-sensi]").forEach(p=>p.classList.remove("on"));
+      pill.classList.add("on");
+      toast("Preset Ativado",`A opção "${pill.dataset.sensi}" foi ativada.`,"ok");
+    });
+  });
+
+  const range=$("#stabRange"), val=$("#stabVal");
+  range.addEventListener("input",()=>{ val.textContent=range.value+"%"; });
+  $("#applyStab").addEventListener("click",()=>{
+    toast("Estabilidade Ajustada",`Estabilidade ajustada para ${range.value}% com sucesso!`,"ok");
+  });
+}
+
+/* ---------- Métodos ---------- */
+function initMethods(){
+  $$("[data-method]").forEach(chk=>{
+    chk.addEventListener("change",()=>{
+      const on=chk.checked, name=chk.dataset.method;
+      toast(on?"Recurso Ativado":"Recurso Desativado",
+        `${name} ${on?"ligado":"desligado"}.`, on?"ok":"warn");
+    });
+  });
+
+  $("#cleanBtn").addEventListener("click",()=>{
+    const prog=$("#cleanProgress"), bar=$("#cleanBar");
+    prog.classList.add("show"); bar.style.width="0%";
+    let p=0;
+    const iv=setInterval(()=>{
+      p+=Math.random()*16+6;
+      if(p>=100){ p=100; }
+      bar.style.width=p+"%";
+      if(p>=100){
+        clearInterval(iv);
+        toast("Otimização Concluída","Cache e arquivos temporários otimizados com sucesso!","ok");
+        setTimeout(()=>{prog.classList.remove("show");bar.style.width="0%";},900);
+      }
+    },180);
+  });
+}
+
+/* ---------- Tamanho ---------- */
+function initScale(){
+  const range=$("#scaleRange"), val=$("#scaleVal"), scaler=$("#scaler");
+  const apply=()=>{ val.textContent=range.value+"%"; scaler.style.transform="scale("+(range.value/100)+")"; };
+  range.addEventListener("input",apply);
+  $("#resetScale").addEventListener("click",()=>{
+    range.value=100; apply();
+    toast("Escala Restaurada","Painel de volta ao tamanho padrão (100%).","info");
+  });
+}
+
+/* ---------- Ajustes ---------- */
+function initSettings(){
+  $("#antiStreamChk").addEventListener("change",function(){
+    const ov=$("#antiStream");
+    if(this.checked){
+      ov.classList.add("show");
+      toast("Anti-Stream Ativado","O painel está oculto em capturas.","ok");
+    }else{
+      ov.classList.remove("show");
+      toast("Anti-Stream Desativado","Modo de captura normal.","warn");
+    }
+  });
+  $("#closeAnti").addEventListener("click",()=>{
+    $("#antiStream").classList.remove("show");
+    $("#antiStreamChk").checked=false;
+  });
+  $("#closePanelBtn").addEventListener("click",()=>{
+    toast("Painel Minimizado","A bola flutuante continua ativa na tela.","warn");
+    setTimeout(minimizePanel,300);
+  });
+  $("#minBtn").addEventListener("click",()=>{
+    toast("Painel Minimizado","A bola flutuante continua ativa na tela.","warn",1600);
+    setTimeout(minimizePanel,200);
+  });
+  $("#logoutBtn").addEventListener("click",()=>{
+    toast("Sessão Encerrada","Voltando para a tela de login...","warn",1800);
+    setTimeout(logout,500);
+  });
+}
+
+/* ---------- Init ---------- */
+function boot(){
+  icons();
+  setupPWA();
+  initTabs(); initSensi(); initMethods(); initScale(); initSettings();
+  initFab(); initFabVisibility(); initFloating(); initApk();
+
+  /* estado do ícone flutuante */
+  if(localStorage.getItem(LS_FABHIDE)==="1"){
+    const chk=$("#fabHideChk"); if(chk) chk.checked=true;
+  }
+
+  /* key lembrada */
+  if(localStorage.getItem(LS_REM)==="1"){
+    const k=localStorage.getItem(LS_KEY);
+    if(k){ $("#keyInput").value=k; $("#rememberChk").checked=true; }
+  }
+
+  $("#loginBtn").addEventListener("click",doLogin);
+  $("#keyInput").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
+  $("#discordBtn").addEventListener("click",()=>{
+    window.open("https://discord.gg/bvHb42qwCG","_blank");
+  });
+
+  /* ===== Modo APK / WebView Android ===== */
+  if(APK_MODE){
+    document.body.classList.add("apk-mode");
+    document.title="Sabor Hack";
+    // avisa o nativo que o web-view carregou
+    nativeCall("onWebReady", window.SaborHack.version());
+    let s={}; try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
+    if(s && s.key){
+      $("#loginView").classList.add("hidden");
+      const d=$("#dashView"); d.classList.remove("hidden");
+      const p=$("#dashPanel"); p.classList.add("dash-in");
+      $("#fab").classList.add("hidden");
+      icons(); loadAccount(); initCountdown();
+      nativeCall("onPanelOpened");
+      toast("Overlay Ativo","Painel flutuante pronto.","ok",3000);
+    }
+    keyauthInit().catch(()=>{});
+    return;
+  }
+
+  /* Modo janela flutuante: abre o painel direto (sessão já existente) */
+  if(FLOATING){
+    document.body.classList.add("floating-mode");
+    let s={}; try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
+    if(s && s.key){
+      $("#loginView").classList.add("hidden");
+      const d=$("#dashView"); d.classList.remove("hidden");
+      const p=$("#dashPanel"); p.classList.add("dash-in");
+      $("#fab").classList.add("hidden");
+      $("#fabHotzone").classList.remove("show");
+      document.title="Sabor Hack — Flutuante";
+      icons(); loadAccount(); initCountdown();
+      toast("Janela Flutuante","Use o botão – para minimizar.","info",4000);
+      keyauthInit().catch(()=>{});
+      return;   /* nao faz init duplicado do keyauth */
+    }
+  }
+
+  /* pré-inicializa a API KeyAuth silenciosamente */
+  keyauthInit().catch(()=>{});
+}
+document.addEventListener("DOMContentLoaded",boot);
+</script>
+</body>
+</html>
