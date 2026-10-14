@@ -630,6 +630,7 @@ body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-botto
             <div class="kv"><span>Licença</span><b class="badge-ok" id="acctLicense">—</b></div>
             <div class="kv"><span>Status</span><b id="acctStatus">—</b></div>
             <div class="kv"><span>Expira em</span><b id="acctExpiry">—</b></div>
+            <div class="kv"><span>HWID (dispositivo)</span><b id="acctHwid" style="font-family:'Rajdhani';font-size:12px;word-break:break-all;text-align:right;max-width:60%">—</b></div>
           </div>
           <div class="acct-grid" style="margin-top:18px">
             <div class="time-box"><div class="n" id="cdDays">00</div><div class="l">Dias</div></div>
@@ -637,6 +638,12 @@ body.floating-mode .sb-user{padding-bottom:calc(14px + env(safe-area-inset-botto
             <div class="time-box"><div class="n" id="cdMins">00</div><div class="l">Minutos</div></div>
             <div class="time-box"><div class="n" id="cdSecs">00</div><div class="l">Segundos</div></div>
           </div>
+          <button class="btn btn-ghost2 btn-action" id="copyHwid">
+            <i data-lucide="copy" style="width:15px;height:15px"></i>COPIAR HWID
+          </button>
+          <button class="btn btn-ghost2 btn-action" id="resetHwid">
+            <i data-lucide="refresh-cw" style="width:15px;height:15px"></i>RESETAR HWID (novo dispositivo)
+          </button>
         </div>
 
       </div>
@@ -686,6 +693,7 @@ const LS_REM="saborhack_remember";
 const LS_SESS="saborhack_session";
 const LS_FAB="saborhack_fabpos";
 const LS_FABHIDE="saborhack_fabhide";
+const LS_HWID="saborhack_hwid";
 
 /* Modo janela flutuante: ?floating=1 (aberta em popup/aba) */
 const QS = new URLSearchParams(location.search);
@@ -792,17 +800,71 @@ async function keyauthInit(){
   return data;
 }
 
-async function keyauthLicense(key){
+async function keyauthLicense(key, hwid){
   if(!sessionId) await keyauthInit();
   const data = await keyauthPost({
     type:"license",
     key:key,
     sessionid:sessionId,
     name:KEYAUTH.name,
-    ownerid:KEYAUTH.ownerid
+    ownerid:KEYAUTH.ownerid,
+    hwid:hwid||""            /* trava a key neste dispositivo+navegador */
   });
   if(!data.success) throw new Error(data.message||"Chave inválida ou expirada.");
   return data;
+}
+
+/* Reset de HWID no KeyAuth (libera a key para o dispositivo atual) */
+async function keyauthResetHwid(key, hwid){
+  if(!sessionId) await keyauthInit();
+  return keyauthPost({
+    type:"resethwid",
+    name:KEYAUTH.name,
+    ownerid:KEYAUTH.ownerid,
+    sessionid:sessionId,
+    key:key,
+    hwid:hwid||""
+  });
+}
+
+/* ---------- HWID (trava por dispositivo + navegador) ---------- */
+function djb2Hex(str){
+  let h=5381;
+  for(let i=0;i<str.length;i++){ h=((h<<5)+h+str.charCodeAt(i))>>>0; }
+  return ("00000000"+h.toString(16)).slice(-8);
+}
+async function sha256Hex(str){
+  try{
+    if(window.crypto && crypto.subtle && (window.isSecureContext!==false)){
+      const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+  }catch(_){}
+  return djb2Hex(str)+djb2Hex(str+"|salt");
+}
+/* Gera/recupera um HWID estavel (aparelho + navegador) */
+async function getHWID(){
+  let hwid=localStorage.getItem(LS_HWID);
+  if(hwid && /^[a-f0-9]{16,64}$/i.test(hwid)) return hwid;
+
+  const w=screen.width||0, h=screen.height||0;
+  const dims=[Math.min(w,h),Math.max(w,h)].join("x");   /* estavel em rotacao */
+  const raw=[
+    navigator.userAgent||"",
+    navigator.platform||"",
+    navigator.language||(navigator.languages&&navigator.languages[0])||"",
+    navigator.hardwareConcurrency||0,
+    navigator.deviceMemory||0,
+    navigator.maxTouchPoints||0,
+    dims,
+    screen.colorDepth||0,
+    new Date().getTimezoneOffset(),
+    (Intl.DateTimeFormat().resolvedOptions().timeZone)||""
+  ].join("|");
+
+  hwid=await sha256Hex("SaborHack::"+raw);
+  localStorage.setItem(LS_HWID,hwid);
+  return hwid;
 }
 
 /* ---------- Parsing robusto de expiração (KeyAuth) ---------- */
@@ -849,10 +911,11 @@ async function doLogin(){
   setLoginBusy(true);
   statusMsg("Conectando ao servidor KeyAuth...","");
   try{
+    const hwid = await getHWID();
     let licenseData = null;
     let apiOnline = true;
     try{
-      licenseData = await keyauthLicense(key);
+      licenseData = await keyauthLicense(key, hwid);
     }catch(err){
       /* Se o fetch falhar (CORS/offline), cai no fallback local */
       if(err instanceof TypeError){
@@ -875,6 +938,7 @@ async function doLogin(){
       key:key,
       username:info.username||info.email||"Licenciado",
       expires:getExpiryMs(info),
+      hwid:hwid,
       raw:info
     }));
 
@@ -1172,7 +1236,17 @@ function loadAccount(){
   }
   $("#acctStatus").textContent = status;
   $("#acctExpiry").textContent = expiry;
+  const hw=$("#acctHwid");
+  if(hw){
+    const id = s.hwid || info_hwid_from_raw(s);
+    hw.textContent = id ? (id.slice(0,8)+"…"+id.slice(-6)) : "—";
+    hw.title = id || "";
+    hw.dataset.full = id || "";
+  }
   $("#sbStatus").textContent = (s.username?"Usuário: "+s.username:"Sessão Ativa");
+}
+function info_hwid_from_raw(s){
+  try{ return (s.raw && (s.raw.hwid||s.raw.HWID)) || ""; }catch(_){ return ""; }
 }
 
 function initCountdown(){
@@ -1295,12 +1369,38 @@ function initSettings(){
   });
 }
 
+/* ---------- Aba Conta (HWID) ---------- */
+function initAccount(){
+  const cp=$("#copyHwid");
+  if(cp) cp.addEventListener("click",async ()=>{
+    const id=await getHWID();
+    try{ await navigator.clipboard.writeText(id); toast("HWID Copiado",id,"ok",6000); }
+    catch(_){ toast("HWID",id,"info",8000); }
+  });
+  const rs=$("#resetHwid");
+  if(rs) rs.addEventListener("click",async ()=>{
+    let s={}; try{ s=JSON.parse(localStorage.getItem(LS_SESS)||"{}"); }catch(_){}
+    if(!s.key){ toast("Sem licença","Faça login novamente para resetar.","err"); return; }
+    const hwid=await getHWID();
+    try{
+      const r=await keyauthResetHwid(s.key,hwid);
+      if(r && r.success){
+        toast("HWID Resetado","Sua licença agora está ligada a este dispositivo.","ok",6000);
+      }else{
+        toast("Falha no reset",(r&&r.message)||"O reset de HWID não está liberado para esta key.","err",7000);
+      }
+    }catch(e){
+      toast("Erro",(e&&e.message)||"Não foi possível resetar o HWID.","err",6000);
+    }
+  });
+}
+
 /* ---------- Init ---------- */
 function boot(){
   icons();
   setupPWA();
   initTabs(); initSensi(); initMethods(); initScale(); initSettings();
-  initFab(); initFabVisibility(); initFloating(); initApk();
+  initFab(); initFabVisibility(); initFloating(); initApk(); initAccount();
 
   /* estado do ícone flutuante */
   if(localStorage.getItem(LS_FABHIDE)==="1"){
